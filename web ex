@@ -1,0 +1,35 @@
+from bs4 import BeautifulSoup
+from decimal import Decimal
+
+
+def convert(amount, cur_from, cur_to, date, requests):
+    x = Decimal('1')
+    x = x.quantize(Decimal('1.0000'))
+    y = Decimal('1')
+    y = y.quantize(Decimal('1.0000'))
+    x1 = Decimal('1')
+    x1 = x1.quantize(Decimal('1.0000'))
+    y1 = Decimal('1')
+    y1 = y1.quantize(Decimal('1.0000'))
+    http = 'http://www.cbr.ru/scripts/XML_daily.asp?date_req=' + date
+    response = requests.get(http)
+    soup = BeautifulSoup(response.text, 'lxml')
+    a = soup.find_all('valute')
+    for i in a:
+        if cur_from in str(i):
+            x = Decimal(i.nominal.string)
+            x = x.quantize(Decimal('1.0000'))
+            y = str(i.value.string).replace(',','.')
+            y = Decimal(y)
+            y = y.quantize(Decimal('1.0000'))
+        if cur_to in str(i):
+            x1 = Decimal(i.nominal.string)
+            x1 = x1.quantize(Decimal('1.0000'))
+            y1 = str(i.value.string).replace(',', '.')
+            y1 = Decimal(y)
+            y1 = y1.quantize(Decimal('1.0000'))
+    v = y / x
+    b = y1 / x1
+    res = Decimal(Decimal(amount) * v / b)
+    res = res.quantize(Decimal('1.0000'))
+    return res
